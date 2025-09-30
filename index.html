@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Control de Ingresos y Gastos</title>
+  <style>
+    body {
+      font-family: "Segoe UI", sans-serif;
+      background: #f4f6f9;
+      margin: 0;
+      padding: 20px;
+      color: #333;
+    }
+    h1 { text-align: center; color: #444; }
+    .container { max-width: 900px; margin: auto; }
+
+    /* Resumen arriba */
+    .summary {
+      display: flex;
+      justify-content: space-around;
+      margin-bottom: 20px;
+      text-align: center;
+    }
+    .card {
+      background: white;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+      width: 30%;
+    }
+    .income { color: green; font-weight: bold; font-size: 18px;}
+    .expense { color: red; font-weight: bold; font-size: 18px;}
+    .balance { color: #444; font-weight: bold; font-size: 18px;}
+
+    .form {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr auto;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+    input, select, button {
+      padding: 10px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      font-size: 14px;
+    }
+    button {
+      background: #4cafef;
+      color: white;
+      font-weight: bold;
+      border: none;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+    button:hover { background: #2a9adf; }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: white;
+      border-radius: 10px;
+      overflow: hidden;
+    }
+    th, td {
+      padding: 12px;
+      text-align: center;
+      border-bottom: 1px solid #eee;
+    }
+    th { background: #4cafef; color: white; }
+    tr:nth-child(even) { background: #f9f9f9; }
+
+    .ingreso-row { background-color: #e6f7ff; color: green; font-weight: bold;}
+    .gasto-row { background-color: #ffe6e6; color: red; font-weight: bold;}
+
+    .bar-container {
+      background: #ddd;
+      border-radius: 5px;
+      height: 20px;
+      width: 100%;
+      position: relative;
+      margin-top: 5px;
+    }
+    .bar {
+      height: 20px;
+      border-radius: 5px;
+      text-align: right;
+      padding-right: 5px;
+      color: white;
+      font-weight: bold;
+      line-height: 20px;
+    }
+    .bar.ingreso { background-color: green; }
+    .bar.gasto { background-color: red; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>💰 Control de Ingresos y Gastos</h1>
+
+    <div class="summary">
+      <div class="card">
+        <h3>Ingresos</h3>
+        <p class="income" id="total-income">$0</p>
+      </div>
+      <div class="card">
+        <h3>Gastos</h3>
+        <p class="expense" id="total-expense">$0</p>
+      </div>
+      <div class="card">
+        <h3>Balance</h3>
+        <p class="balance" id="balance">$0</p>
+      </div>
+    </div>
+
+    <form id="transaction-form" class="form">
+      <input type="text" id="desc" placeholder="Descripción" required>
+      <input type="number" id="amount" placeholder="Monto" required>
+      <select id="type">
+        <option value="ingreso">Ingreso</option>
+        <option value="gasto">Gasto</option>
+      </select>
+      <button type="submit">➕ Agregar</button>
+    </form>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Descripción</th>
+          <th>Monto</th>
+          <th>Tipo</th>
+          <th>Progreso</th>
+          <th>Acción</th>
+        </tr>
+      </thead>
+      <tbody id="transactions"></tbody>
+    </table>
+  </div>
+
+  <script>
+    const form = document.getElementById('transaction-form');
+    const transactionsEl = document.getElementById('transactions');
+    const totalIncomeEl = document.getElementById('total-income');
+    const totalExpenseEl = document.getElementById('total-expense');
+    const balanceEl = document.getElementById('balance');
+
+    let transactions = JSON.parse(localStorage.getItem('transactions')) || [];
+    renderTransactions();
+
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const desc = document.getElementById('desc').value;
+      const amount = parseFloat(document.getElementById('amount').value);
+      const type = document.getElementById('type').value;
+
+      if(desc && amount) {
+        const transaction = { id: Date.now(), desc, amount, type };
+        transactions.unshift(transaction);
+        saveAndRender();
+        form.reset();
+      }
+    });
+
+    function renderTransactions() {
+      transactionsEl.innerHTML = '';
+      let totalIncome = 0;
+      let totalExpense = 0;
+
+      transactions.forEach(t => {
+        if(t.type === 'ingreso') totalIncome += t.amount;
+        else totalExpense += t.amount;
+      });
+
+      transactions.forEach(t => {
+        const row = document.createElement('tr');
+        row.className = t.type === 'ingreso' ? 'ingreso-row' : 'gasto-row';
+
+        let total = t.type === 'ingreso' ? totalIncome : totalExpense;
+        let widthPercent = total ? (t.amount / total) * 100 : 0;
+
+        row.innerHTML = `
+          <td>${t.desc}</td>
+          <td>$${t.amount.toFixed(2)}</td>
+          <td>${t.type === 'ingreso' ? '✅ Ingreso' : '❌ Gasto'}</td>
+          <td>
+            <div class="bar-container">
+              <div class="bar ${t.type}" style="width:${widthPercent}%">
+                ${widthPercent.toFixed(1)}%
+              </div>
+            </div>
+          </td>
+          <td><button onclick="deleteTransaction(${t.id})">🗑️</button></td>
+        `;
+        transactionsEl.appendChild(row);
+      });
+
+      totalIncomeEl.textContent = `$${totalIncome.toFixed(2)}`;
+      totalExpenseEl.textContent = `$${totalExpense.toFixed(2)}`;
+      balanceEl.textContent = `$${(totalIncome - totalExpense).toFixed(2)}`;
+    }
+
+    function saveAndRender() {
+      localStorage.setItem('transactions', JSON.stringify(transactions));
+      renderTransactions();
+    }
+
+    function deleteTransaction(id) {
+      transactions = transactions.filter(t => t.id !== id);
+      saveAndRender();
+    }
+  </script>
+</body>
+</html>
