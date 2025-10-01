@@ -3,38 +3,41 @@
 <head>
   <meta charset="UTF-8">
   <title>Control de Ingresos y Gastos</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"> <!-- 📱 Ajuste móvil -->
   <style>
     body {
       font-family: "Segoe UI", sans-serif;
       background: #f4f6f9;
       margin: 0;
-      padding: 20px;
+      padding: 15px;
       color: #333;
     }
-    h1 { text-align: center; color: #444; }
-    .container { max-width: 900px; margin: auto; }
+    h1 { text-align: center; color: #444; font-size: 1.6rem; }
+    .container { max-width: 1000px; margin: auto; }
 
-    /* Resumen arriba */
     .summary {
       display: flex;
       justify-content: space-around;
       margin-bottom: 20px;
       text-align: center;
+      flex-wrap: wrap;
+      gap: 10px;
     }
     .card {
       background: white;
-      padding: 20px;
+      padding: 15px;
       border-radius: 12px;
       box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-      width: 30%;
+      flex: 1 1 30%;
+      min-width: 120px;
     }
-    .income { color: green; font-weight: bold; font-size: 18px;}
-    .expense { color: red; font-weight: bold; font-size: 18px;}
-    .balance { color: #444; font-weight: bold; font-size: 18px;}
+    .income { color: green; font-weight: bold; font-size: 1.1rem;}
+    .expense { color: red; font-weight: bold; font-size: 1.1rem;}
+    .balance { color: #444; font-weight: bold; font-size: 1.1rem;}
 
     .form {
       display: grid;
-      grid-template-columns: 1fr 1fr 1fr auto;
+      grid-template-columns: 1fr 1fr 1fr auto auto;
       gap: 10px;
       margin-bottom: 20px;
     }
@@ -54,15 +57,19 @@
     }
     button:hover { background: #2a9adf; }
 
+    /* Tabla responsive */
+    .table-container {
+      overflow-x: auto;
+      border-radius: 10px;
+    }
     table {
       width: 100%;
       border-collapse: collapse;
       background: white;
-      border-radius: 10px;
-      overflow: hidden;
+      min-width: 600px;
     }
     th, td {
-      padding: 12px;
+      padding: 10px;
       text-align: center;
       border-bottom: 1px solid #eee;
     }
@@ -75,22 +82,40 @@
     .bar-container {
       background: #ddd;
       border-radius: 5px;
-      height: 20px;
+      height: 18px;
       width: 100%;
       position: relative;
-      margin-top: 5px;
+      margin-top: 3px;
     }
     .bar {
-      height: 20px;
+      height: 18px;
       border-radius: 5px;
       text-align: right;
       padding-right: 5px;
       color: white;
       font-weight: bold;
-      line-height: 20px;
+      font-size: 0.75rem;
+      line-height: 18px;
     }
     .bar.ingreso { background-color: green; }
     .bar.gasto { background-color: red; }
+
+    /* === 📱 Estilos responsive para móviles === */
+    @media (max-width: 768px) {
+      .form {
+        grid-template-columns: 1fr;
+      }
+      .form button {
+        width: 100%;
+      }
+      .summary {
+        flex-direction: column;
+        align-items: center;
+      }
+      .card {
+        width: 90%;
+      }
+    }
   </style>
 </head>
 <body>
@@ -120,21 +145,28 @@
         <option value="gasto">Gasto</option>
       </select>
       <button type="submit">➕ Agregar</button>
+      <button type="button" onclick="exportToExcel()">📥 Exportar a Excel</button>
     </form>
 
-    <table>
-      <thead>
-        <tr>
-          <th>Descripción</th>
-          <th>Monto</th>
-          <th>Tipo</th>
-          <th>Progreso</th>
-          <th>Acción</th>
-        </tr>
-      </thead>
-      <tbody id="transactions"></tbody>
-    </table>
+    <div class="table-container">
+      <table>
+        <thead>
+          <tr>
+            <th>Fecha</th>
+            <th>Descripción</th>
+            <th>Monto</th>
+            <th>Tipo</th>
+            <th>Progreso</th>
+            <th>Acción</th>
+          </tr>
+        </thead>
+        <tbody id="transactions"></tbody>
+      </table>
+    </div>
   </div>
+
+  <!-- Librería XLSX.js -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 
   <script>
     const form = document.getElementById('transaction-form');
@@ -146,6 +178,8 @@
     let transactions = JSON.parse(localStorage.getItem('transactions')) || [];
     renderTransactions();
 
+    applyPassiveIncome(); // ingreso pasivo acumulado
+
     form.addEventListener('submit', (e) => {
       e.preventDefault();
       const desc = document.getElementById('desc').value;
@@ -153,12 +187,21 @@
       const type = document.getElementById('type').value;
 
       if(desc && amount) {
-        const transaction = { id: Date.now(), desc, amount, type };
+        const transaction = createTransaction(desc, amount, type);
         transactions.unshift(transaction);
         saveAndRender();
         form.reset();
       }
     });
+
+    function createTransaction(desc, amount, type) {
+      const now = new Date();
+      const fecha = now.toLocaleDateString('es-ES', {
+        day: '2-digit', month: '2-digit', year: 'numeric',
+        hour: '2-digit', minute: '2-digit'
+      });
+      return { id: Date.now(), desc, amount, type, fecha };
+    }
 
     function renderTransactions() {
       transactionsEl.innerHTML = '';
@@ -178,6 +221,7 @@
         let widthPercent = total ? (t.amount / total) * 100 : 0;
 
         row.innerHTML = `
+          <td>${t.fecha}</td>
           <td>${t.desc}</td>
           <td>$${t.amount.toFixed(2)}</td>
           <td>${t.type === 'ingreso' ? '✅ Ingreso' : '❌ Gasto'}</td>
@@ -206,6 +250,70 @@
     function deleteTransaction(id) {
       transactions = transactions.filter(t => t.id !== id);
       saveAndRender();
+    }
+
+    // === INGRESO PASIVO ACUMULADO ===
+    function applyPassiveIncome() {
+      const lastApplied = localStorage.getItem("lastPassiveIncome");
+      const now = new Date();
+      const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
+      let lastDate = lastApplied ? new Date(lastApplied) : null;
+      if (!lastDate) {
+        localStorage.setItem("lastPassiveIncome", today.toISOString());
+        return;
+      }
+
+      lastDate = new Date(lastDate.getFullYear(), lastDate.getMonth(), lastDate.getDate());
+      const daysDiff = Math.floor((today - lastDate) / (1000 * 60 * 60 * 24));
+
+      if (daysDiff > 0) {
+        let totalIncome = transactions.filter(t => t.type === "ingreso").reduce((a, b) => a + b.amount, 0);
+        let totalExpense = transactions.filter(t => t.type === "gasto").reduce((a, b) => a + b.amount, 0);
+        let balance = totalIncome - totalExpense;
+
+        if (balance > 0) {
+          const dailyRate = 0.05 / 365;
+          for (let i = 1; i <= daysDiff; i++) {
+            const passiveAmount = balance * dailyRate;
+            balance += passiveAmount;
+
+            const fecha = new Date(lastDate);
+            fecha.setDate(lastDate.getDate() + i);
+
+            const formattedDate = fecha.toLocaleDateString('es-ES', {
+              day: '2-digit', month: '2-digit', year: 'numeric',
+              hour: '2-digit', minute: '2-digit'
+            });
+
+            transactions.unshift({
+              id: Date.now() + i,
+              desc: "Ingreso Pasivo",
+              amount: passiveAmount,
+              type: "ingreso",
+              fecha: formattedDate
+            });
+          }
+          saveAndRender();
+        }
+        localStorage.setItem("lastPassiveIncome", today.toISOString());
+      }
+    }
+
+    // 📥 Exportar a Excel
+    function exportToExcel() {
+      const data = transactions.map(t => ({
+        Fecha: t.fecha,
+        Descripción: t.desc,
+        Monto: t.amount,
+        Tipo: t.type
+      }));
+
+      const ws = XLSX.utils.json_to_sheet(data);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, "Transacciones");
+
+      XLSX.writeFile(wb, "control_ingresos_gastos.xlsx");
     }
   </script>
 </body>
