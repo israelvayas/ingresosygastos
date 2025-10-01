@@ -3,138 +3,71 @@
 <head>
   <meta charset="UTF-8">
   <title>Control de Ingresos y Gastos</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"> <!-- 📱 Ajuste móvil -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
-    body {
-      font-family: "Segoe UI", sans-serif;
-      background: #f4f6f9;
-      margin: 0;
-      padding: 15px;
-      color: #333;
-    }
-    h1 { text-align: center; color: #444; font-size: 1.6rem; }
-    .container { max-width: 1000px; margin: auto; }
+    body { font-family: "Segoe UI", sans-serif; background: #f4f6f9; margin:0; padding:15px; color:#333; }
+    h1 { text-align:center; color:#444; font-size:1.6rem; }
+    .container { max-width:1000px; margin:auto; }
 
-    .summary {
-      display: flex;
-      justify-content: space-around;
-      margin-bottom: 20px;
-      text-align: center;
-      flex-wrap: wrap;
-      gap: 10px;
+    /* Botones de navegación */
+    .nav-buttons { text-align:center; margin-bottom:10px; }
+    .nav-buttons button {
+      padding:8px 15px; margin:0 5px; border:none; border-radius:8px;
+      background:#4cafef; color:white; font-weight:bold; cursor:pointer; transition:.3s;
     }
-    .card {
-      background: white;
-      padding: 15px;
-      border-radius: 12px;
-      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-      flex: 1 1 30%;
-      min-width: 120px;
-    }
-    .income { color: green; font-weight: bold; font-size: 1.1rem;}
-    .expense { color: red; font-weight: bold; font-size: 1.1rem;}
-    .balance { color: #444; font-weight: bold; font-size: 1.1rem;}
+    .nav-buttons button:hover { background:#2a9adf; }
 
-    .form {
-      display: grid;
-      grid-template-columns: 1fr 1fr 1fr auto auto;
-      gap: 10px;
-      margin-bottom: 20px;
-    }
-    input, select, button {
-      padding: 10px;
-      border-radius: 8px;
-      border: 1px solid #ccc;
-      font-size: 14px;
-    }
-    button {
-      background: #4cafef;
-      color: white;
-      font-weight: bold;
-      border: none;
-      cursor: pointer;
-      transition: 0.3s;
-    }
-    button:hover { background: #2a9adf; }
+    /* Resumen ingresos/gastos */
+    .summary { display:flex; justify-content:space-around; margin-bottom:20px; text-align:center; flex-wrap:wrap; gap:10px; }
+    .card { background:white; padding:15px; border-radius:12px; box-shadow:0 4px 8px rgba(0,0,0,0.1); flex:1 1 30%; min-width:120px; }
+    .income { color:green; font-weight:bold; font-size:1.1rem;}
+    .expense { color:red; font-weight:bold; font-size:1.1rem;}
+    .balance { color:#444; font-weight:bold; font-size:1.1rem;}
 
-    /* Tabla responsive */
-    .table-container {
-      overflow-x: auto;
-      border-radius: 10px;
-    }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      background: white;
-      min-width: 600px;
-    }
-    th, td {
-      padding: 10px;
-      text-align: center;
-      border-bottom: 1px solid #eee;
-    }
-    th { background: #4cafef; color: white; }
-    tr:nth-child(even) { background: #f9f9f9; }
+    /* Formulario */
+    .form { display:grid; grid-template-columns:1fr 1fr 1fr auto auto; gap:10px; margin-bottom:20px; }
+    input, select, button { padding:10px; border-radius:8px; border:1px solid #ccc; font-size:14px; }
+    button { background:#4cafef; color:white; font-weight:bold; border:none; cursor:pointer; transition:.3s; }
+    button:hover { background:#2a9adf; }
 
-    .ingreso-row { background-color: #e6f7ff; color: green; font-weight: bold;}
-    .gasto-row { background-color: #ffe6e6; color: red; font-weight: bold;}
+    /* Tabla principal */
+    .table-container { overflow-x:auto; border-radius:10px; }
+    table { width:100%; border-collapse:collapse; background:white; min-width:600px; }
+    th, td { padding:10px; text-align:center; border-bottom:1px solid #eee; }
+    th { background:#4cafef; color:white; }
+    tr:nth-child(even) { background:#f9f9f9; }
+    .ingreso-row { background-color:#e6f7ff; color:green; font-weight:bold;}
+    .gasto-row { background-color:#ffe6e6; color:red; font-weight:bold;}
 
-    .bar-container {
-      background: #ddd;
-      border-radius: 5px;
-      height: 18px;
-      width: 100%;
-      position: relative;
-      margin-top: 3px;
-    }
-    .bar {
-      height: 18px;
-      border-radius: 5px;
-      text-align: right;
-      padding-right: 5px;
-      color: white;
-      font-weight: bold;
-      font-size: 0.75rem;
-      line-height: 18px;
-    }
-    .bar.ingreso { background-color: green; }
-    .bar.gasto { background-color: red; }
+    .bar-container { background:#ddd; border-radius:5px; height:18px; width:100%; position:relative; margin-top:3px; }
+    .bar { height:18px; border-radius:5px; text-align:right; padding-right:5px; color:white; font-weight:bold; font-size:.75rem; line-height:18px; }
+    .bar.ingreso { background-color:green; }
+    .bar.gasto { background-color:red; }
 
-    /* === 📱 Estilos responsive para móviles === */
-    @media (max-width: 768px) {
-      .form {
-        grid-template-columns: 1fr;
-      }
-      .form button {
-        width: 100%;
-      }
-      .summary {
-        flex-direction: column;
-        align-items: center;
-      }
-      .card {
-        width: 90%;
-      }
+    /* Responsive móvil */
+    @media (max-width:768px) {
+      .form { grid-template-columns:1fr; }
+      .form button { width:100%; }
+      .summary { flex-direction:column; align-items:center; }
+      .card { width:90%; }
     }
   </style>
 </head>
 <body>
-  <div class="container">
-    <h1>💰 Control de Ingresos y Gastos</h1>
+<div class="container">
+  <h1>💰 Control de Ingresos y Gastos</h1>
 
+  <div class="nav-buttons">
+    <button onclick="showTab('main')">🏠 Inicio</button>
+    <button onclick="showTab('interests')">📈 Intereses</button>
+  </div>
+
+  <!-- Sección principal -->
+  <div id="main" style="display:block;">
     <div class="summary">
-      <div class="card">
-        <h3>Ingresos</h3>
-        <p class="income" id="total-income">$0</p>
-      </div>
-      <div class="card">
-        <h3>Gastos</h3>
-        <p class="expense" id="total-expense">$0</p>
-      </div>
-      <div class="card">
-        <h3>Balance</h3>
-        <p class="balance" id="balance">$0</p>
-      </div>
+      <div class="card"><h3>Ingresos</h3><p class="income" id="total-income">$0</p></div>
+      <div class="card"><h3>Gastos</h3><p class="expense" id="total-expense">$0</p></div>
+      <div class="card"><h3>Balance</h3><p class="balance" id="balance">$0</p></div>
     </div>
 
     <form id="transaction-form" class="form">
@@ -152,12 +85,7 @@
       <table>
         <thead>
           <tr>
-            <th>Fecha</th>
-            <th>Descripción</th>
-            <th>Monto</th>
-            <th>Tipo</th>
-            <th>Progreso</th>
-            <th>Acción</th>
+            <th>Fecha</th><th>Descripción</th><th>Monto</th><th>Tipo</th><th>Progreso</th><th>Acción</th>
           </tr>
         </thead>
         <tbody id="transactions"></tbody>
@@ -165,156 +93,194 @@
     </div>
   </div>
 
-  <!-- Librería XLSX.js -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <!-- Sección intereses -->
+  <div id="interests" style="display:none;">
+    <h2>📊 Interés Compuesto y Acumulado</h2>
 
-  <script>
-    const form = document.getElementById('transaction-form');
-    const transactionsEl = document.getElementById('transactions');
-    const totalIncomeEl = document.getElementById('total-income');
-    const totalExpenseEl = document.getElementById('total-expense');
-    const balanceEl = document.getElementById('balance');
+    <h3>Proyección de interés (sobre balance actual)</h3>
+    <table border="1" style="width:100%; margin-bottom:20px;">
+      <thead>
+        <tr><th>Intervalo</th><th>Interés estimado</th><th>Saldo estimado</th></tr>
+      </thead>
+      <tbody id="projection-table"></tbody>
+    </table>
 
-    let transactions = JSON.parse(localStorage.getItem('transactions')) || [];
-    renderTransactions();
+    <h3>Intereses reales diarios acumulados</h3>
+    <table border="1" style="width:100%;">
+      <thead>
+        <tr><th>Fecha</th><th>Interés generado</th><th>Saldo</th></tr>
+      </thead>
+      <tbody id="daily-interest-table"></tbody>
+    </table>
+  </div>
+</div>
 
-    applyPassiveIncome(); // ingreso pasivo acumulado
+<!-- Librería XLSX.js -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 
-    form.addEventListener('submit', (e) => {
-      e.preventDefault();
-      const desc = document.getElementById('desc').value;
-      const amount = parseFloat(document.getElementById('amount').value);
-      const type = document.getElementById('type').value;
+<script>
+/* ---------------- Variables ---------------- */
+const form = document.getElementById('transaction-form');
+const transactionsEl = document.getElementById('transactions');
+const totalIncomeEl = document.getElementById('total-income');
+const totalExpenseEl = document.getElementById('total-expense');
+const balanceEl = document.getElementById('balance');
 
-      if(desc && amount) {
-        const transaction = createTransaction(desc, amount, type);
-        transactions.unshift(transaction);
-        saveAndRender();
-        form.reset();
+let transactions = JSON.parse(localStorage.getItem('transactions')) || [];
+
+/* ---------------- Inicialización ---------------- */
+renderTransactions();
+applyPassiveIncome();
+updateProjection();
+saveDailyInterest();
+
+/* ---------------- Formulario ---------------- */
+form.addEventListener('submit',(e)=>{
+  e.preventDefault();
+  const desc = document.getElementById('desc').value;
+  const amount = parseFloat(document.getElementById('amount').value);
+  const type = document.getElementById('type').value;
+
+  if(desc && amount){
+    const transaction = createTransaction(desc, amount, type);
+    transactions.unshift(transaction);
+    saveAndRender();
+    form.reset();
+    updateProjection();
+    saveDailyInterest();
+  }
+});
+
+/* ---------------- Funciones ---------------- */
+function createTransaction(desc, amount, type){
+  const now = new Date();
+  const fecha = now.toLocaleDateString('es-ES',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});
+  return {id:Date.now(), desc, amount, type, fecha};
+}
+
+function renderTransactions(){
+  transactionsEl.innerHTML='';
+  let totalIncome = 0, totalExpense = 0;
+  transactions.forEach(t=>{ if(t.type==='ingreso') totalIncome+=t.amount; else totalExpense+=t.amount; });
+
+  transactions.forEach(t=>{
+    const row=document.createElement('tr');
+    row.className = t.type==='ingreso'?'ingreso-row':'gasto-row';
+    const total = t.type==='ingreso'?totalIncome:totalExpense;
+    const widthPercent = total?(t.amount/total)*100:0;
+    row.innerHTML=`
+      <td>${t.fecha}</td>
+      <td>${t.desc}</td>
+      <td>$${t.amount.toFixed(2)}</td>
+      <td>${t.type==='ingreso'?'✅ Ingreso':'❌ Gasto'}</td>
+      <td><div class="bar-container"><div class="bar ${t.type}" style="width:${widthPercent}%">${widthPercent.toFixed(1)}%</div></div></td>
+      <td><button onclick="deleteTransaction(${t.id})">🗑️</button></td>
+    `;
+    transactionsEl.appendChild(row);
+  });
+
+  totalIncomeEl.textContent=`$${totalIncome.toFixed(2)}`;
+  totalExpenseEl.textContent=`$${totalExpense.toFixed(2)}`;
+  balanceEl.textContent=`$${(totalIncome-totalExpense).toFixed(2)}`;
+}
+
+function saveAndRender(){
+  localStorage.setItem('transactions', JSON.stringify(transactions));
+  renderTransactions();
+}
+
+function deleteTransaction(id){
+  transactions = transactions.filter(t=>t.id!==id);
+  saveAndRender();
+}
+
+/* ---------------- Ingreso pasivo acumulado ---------------- */
+function applyPassiveIncome(){
+  const lastApplied = localStorage.getItem("lastPassiveIncome");
+  const now = new Date();
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
+  let lastDate = lastApplied ? new Date(lastApplied) : null;
+  if(!lastDate){ localStorage.setItem("lastPassiveIncome", today.toISOString()); return; }
+
+  lastDate = new Date(lastDate.getFullYear(), lastDate.getMonth(), lastDate.getDate());
+  const daysDiff = Math.floor((today-lastDate)/(1000*60*60*24));
+
+  if(daysDiff>0){
+    let totalIncome = transactions.filter(t=>t.type==="ingreso").reduce((a,b)=>a+b.amount,0);
+    let totalExpense = transactions.filter(t=>t.type==="gasto").reduce((a,b)=>a+b.amount,0);
+    let balance = totalIncome - totalExpense;
+    if(balance>0){
+      const dailyRate = 0.05/365;
+      for(let i=1;i<=daysDiff;i++){
+        const passiveAmount = balance*dailyRate;
+        balance+=passiveAmount;
+        const fecha=new Date(lastDate);
+        fecha.setDate(lastDate.getDate()+i);
+        const formattedDate = fecha.toLocaleDateString('es-ES',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});
+        transactions.unshift({id:Date.now()+i, desc:"Ingreso Pasivo", amount:passiveAmount, type:"ingreso", fecha:formattedDate});
       }
-    });
-
-    function createTransaction(desc, amount, type) {
-      const now = new Date();
-      const fecha = now.toLocaleDateString('es-ES', {
-        day: '2-digit', month: '2-digit', year: 'numeric',
-        hour: '2-digit', minute: '2-digit'
-      });
-      return { id: Date.now(), desc, amount, type, fecha };
-    }
-
-    function renderTransactions() {
-      transactionsEl.innerHTML = '';
-      let totalIncome = 0;
-      let totalExpense = 0;
-
-      transactions.forEach(t => {
-        if(t.type === 'ingreso') totalIncome += t.amount;
-        else totalExpense += t.amount;
-      });
-
-      transactions.forEach(t => {
-        const row = document.createElement('tr');
-        row.className = t.type === 'ingreso' ? 'ingreso-row' : 'gasto-row';
-
-        let total = t.type === 'ingreso' ? totalIncome : totalExpense;
-        let widthPercent = total ? (t.amount / total) * 100 : 0;
-
-        row.innerHTML = `
-          <td>${t.fecha}</td>
-          <td>${t.desc}</td>
-          <td>$${t.amount.toFixed(2)}</td>
-          <td>${t.type === 'ingreso' ? '✅ Ingreso' : '❌ Gasto'}</td>
-          <td>
-            <div class="bar-container">
-              <div class="bar ${t.type}" style="width:${widthPercent}%">
-                ${widthPercent.toFixed(1)}%
-              </div>
-            </div>
-          </td>
-          <td><button onclick="deleteTransaction(${t.id})">🗑️</button></td>
-        `;
-        transactionsEl.appendChild(row);
-      });
-
-      totalIncomeEl.textContent = `$${totalIncome.toFixed(2)}`;
-      totalExpenseEl.textContent = `$${totalExpense.toFixed(2)}`;
-      balanceEl.textContent = `$${(totalIncome - totalExpense).toFixed(2)}`;
-    }
-
-    function saveAndRender() {
-      localStorage.setItem('transactions', JSON.stringify(transactions));
-      renderTransactions();
-    }
-
-    function deleteTransaction(id) {
-      transactions = transactions.filter(t => t.id !== id);
       saveAndRender();
     }
+    localStorage.setItem("lastPassiveIncome", today.toISOString());
+  }
+}
 
-    // === INGRESO PASIVO ACUMULADO ===
-    function applyPassiveIncome() {
-      const lastApplied = localStorage.getItem("lastPassiveIncome");
-      const now = new Date();
-      const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+/* ---------------- Intereses ---------------- */
+function getCurrentBalance(){
+  let totalIncome = transactions.filter(t=>t.type==='ingreso').reduce((a,b)=>a+b.amount,0);
+  let totalExpense = transactions.filter(t=>t.type==='gasto').reduce((a,b)=>a+b.amount,0);
+  return totalIncome-totalExpense;
+}
 
-      let lastDate = lastApplied ? new Date(lastApplied) : null;
-      if (!lastDate) {
-        localStorage.setItem("lastPassiveIncome", today.toISOString());
-        return;
-      }
+function updateProjection(){
+  const balance = getCurrentBalance();
+  const dailyRate = 0.05/365;
+  const tbody = document.getElementById('projection-table');
+  tbody.innerHTML='';
+  const intervals = [{name:'Diario',days:1},{name:'Semanal',days:7},{name:'Mensual',days:30},{name:'Anual',days:365}];
+  intervals.forEach(i=>{
+    const interest = balance*(Math.pow(1+dailyRate,i.days)-1);
+    const finalBalance = balance+interest;
+    tbody.innerHTML+=`<tr><td>${i.name}</td><td>$${interest.toFixed(2)}</td><td>$${finalBalance.toFixed(2)}</td></tr>`;
+  });
+}
 
-      lastDate = new Date(lastDate.getFullYear(), lastDate.getMonth(), lastDate.getDate());
-      const daysDiff = Math.floor((today - lastDate) / (1000 * 60 * 60 * 24));
+function saveDailyInterest(){
+  const dailyInterests = JSON.parse(localStorage.getItem('dailyInterests'))||[];
+  const today = new Date().toLocaleDateString('es-ES');
+  const balance = getCurrentBalance();
+  const interest = balance*0.05/365;
+  if(!dailyInterests.some(d=>d.fecha===today)){
+    dailyInterests.push({fecha:today, interest:interest, balance:balance});
+    localStorage.setItem('dailyInterests', JSON.stringify(dailyInterests));
+  }
+  updateDailyInterestTable();
+}
 
-      if (daysDiff > 0) {
-        let totalIncome = transactions.filter(t => t.type === "ingreso").reduce((a, b) => a + b.amount, 0);
-        let totalExpense = transactions.filter(t => t.type === "gasto").reduce((a, b) => a + b.amount, 0);
-        let balance = totalIncome - totalExpense;
+function updateDailyInterestTable(){
+  const dailyInterests = JSON.parse(localStorage.getItem('dailyInterests'))||[];
+  const tbody = document.getElementById('daily-interest-table');
+  tbody.innerHTML='';
+  dailyInterests.forEach(d=>{
+    tbody.innerHTML+=`<tr><td>${d.fecha}</td><td>$${d.interest.toFixed(2)}</td><td>$${d.balance.toFixed(2)}</td></tr>`;
+  });
+}
 
-        if (balance > 0) {
-          const dailyRate = 0.05 / 365;
-          for (let i = 1; i <= daysDiff; i++) {
-            const passiveAmount = balance * dailyRate;
-            balance += passiveAmount;
+/* ---------------- Navegación pestañas ---------------- */
+function showTab(tab){
+  document.getElementById('main').style.display = (tab==='main')?'block':'none';
+  document.getElementById('interests').style.display = (tab==='interests')?'block':'none';
+}
 
-            const fecha = new Date(lastDate);
-            fecha.setDate(lastDate.getDate() + i);
-
-            const formattedDate = fecha.toLocaleDateString('es-ES', {
-              day: '2-digit', month: '2-digit', year: 'numeric',
-              hour: '2-digit', minute: '2-digit'
-            });
-
-            transactions.unshift({
-              id: Date.now() + i,
-              desc: "Ingreso Pasivo",
-              amount: passiveAmount,
-              type: "ingreso",
-              fecha: formattedDate
-            });
-          }
-          saveAndRender();
-        }
-        localStorage.setItem("lastPassiveIncome", today.toISOString());
-      }
-    }
-
-    // 📥 Exportar a Excel
-    function exportToExcel() {
-      const data = transactions.map(t => ({
-        Fecha: t.fecha,
-        Descripción: t.desc,
-        Monto: t.amount,
-        Tipo: t.type
-      }));
-
-      const ws = XLSX.utils.json_to_sheet(data);
-      const wb = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(wb, ws, "Transacciones");
-
-      XLSX.writeFile(wb, "control_ingresos_gastos.xlsx");
-    }
-  </script>
+/* ---------------- Exportar Excel ---------------- */
+function exportToExcel(){
+  const data = transactions.map(t=>({Fecha:t.fecha,Descripción:t.desc,Monto:t.amount,Tipo:t.type}));
+  const ws = XLSX.utils.json_to_sheet(data);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, "Transacciones");
+  XLSX.writeFile(wb,"control_ingresos_gastos.xlsx");
+}
+</script>
 </body>
 </html>
